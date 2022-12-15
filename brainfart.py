@@ -131,13 +131,13 @@ def __main():
     # -f, --file <str>: The file to run. Defaults to empty string.
     # -d, --data <str>: CSV of data to use. Defaults to 1000 cells of 0 if not provided.
     parser = argparse.ArgumentParser(description="BrainFart.py - A BrainFart interpreter written in Python")
-    parser.add_argument("-h", "--help", action="store_true", help="Prints this help message.")
+    # parser.add_argument("-h", "--help", action="store_true", help="Prints this help message.")
     parser.add_argument("-p", "--program", type=str, default="", help="The program to run. Defaults to empty string.")
     parser.add_argument("-f", "--file", type=str, default="", help="The file to run. Defaults to empty string.")
     parser.add_argument("-d", "--data", type=str, default="", help="CSV of data to use. Defaults to 1000 cells of 0 if not provided.")
     args = parser.parse_args()
 
-    if (args.help) or (len(sys.argv) == 1):
+    if (len(sys.argv) == 1):
         print_help()
         sys.exit(0)
 
