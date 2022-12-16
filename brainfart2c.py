@@ -1,20 +1,21 @@
 from typing import *
 
-class BrainFart:
+class BrainFart2C:
     def __init__(
         self,
         code: str = "",
         data: List[int] = [0] * 1000,
         instruction_pointer: int = 0,
         data_pointer: int = 0,
+        outfile: str = "brainfart2c_out.c",
     ):
-        """BrainFart Init
+        """BrainFart2C Init
         :param code <str>: The program to run. Defaults to empty string.
         :param data <List[int]>: The data to use. Defaults to 1000 cells of 0.
         :param instruction_pointer <int>: The instruction pointer. Defaults to 0.
         :param data_pointer <int>: The data pointer. Defaults to 0.
 
-        :return <BrainFart>: A BrainFart object.
+        :return <BrainFart2C>: A BrainFart2C object.
         """
         self.instructions = "+-<>.,[]"
         self.code = "".join([c for c in code if c in self.instructions])
@@ -22,50 +23,34 @@ class BrainFart:
         self.iPtr = instruction_pointer
         self.dPtr = data_pointer
 
-    def run(
-        self,
-    ) -> List[int]:
+    def generate(self):
+        instr_map = {
+            "+": "++*ptr;",
+            "-": "--*ptr;",
+            ">": "++ptr;",
+            "<": "--ptr;",
+            ".": "putchar(*ptr);",
+            ",": "*ptr = getchar();",
+            "[": "while(*ptr){",
+            "]": "}",
+        }
+        p = f"char array[{len(self.data)}] = {self.data};"
+        p += f"char *ptr = array;"
+        for instr in instr_map:
+            p += self.code.replace(instr, instr_map[instr])
 
-        while self.iPtr < len(self.code):
-            c = self.code[self.iPtr]
-            if c == "+":
-                self.data[self.dPtr] += 1
-            elif c == "-":
-                self.data[self.dPtr] -= 1
-            elif c == ">":
-                self.dPtr += 1
-            elif c == "<":
-                self.dPtr -= 1
-            elif c == ".":
-                print(chr(self.data[self.dPtr]), end="")
-            elif c == ",":
-                self.data[self.dPtr] = ord(input()[0])
-            elif c == "[":
-                if not self.data[self.dPtr]:
-                    d, cx = 0, self.iPtr
-                    while d != -1:
-                        cx += 1
-                        if self.code[cx] in "[]":
-                            d += 1 if self.code[cx] == "[" else -1
-                    self.iPtr = cx
-
-            elif c == "]":
-                if self.data[self.dPtr]:
-                    d, cx = 0, self.iPtr
-                    while d != -1:
-                        cx -= 1
-                        if self.code[cx] in "[]":
-                            d += 1 if self.code[cx] == "]" else -1
-                    self.iPtr = cx
-            self.iPtr += 1
-        return self.data
+        if self.outfile:
+            with open(self.outfile, "w") as f:
+                f.write(p)
+        else:
+            return p                
 
 
 def exampleA():
     # adds two numbers A, B. leaves the result in B
     program = "[->+<]"
     data = [10, 20] + [0] * 8
-    bf = BrainFart(program, data)
+    bf = BrainFart2C(program, data)
     output = bf.run()
     print(output)
     return output
@@ -77,14 +62,14 @@ def exampleB():
     data = [0] * 10
     data[1:4] = [2, 3, 4]
     # ↑↑ 0 followed by 2, 3, 4 followed by 6 0s (10 total)
-    bf = BrainFart(program, data)
+    bf = BrainFart2C(program, data)
     output = bf.run()
     print(output)
     return output
 
 def print_help():
-    print("BrainFart.py - A BrainFart interpreter written in Python")
-    print("Usage: brainfart.py <file>")
+    print("BrainFart2C.py - A BrainFart-to-C converter written in Python")
+    print("Usage: BrainFart2C.py <file>")
     hString = """
     +: Increment the value at the current cell by 1.
     -: Decrement the value at the current cell by 1.
@@ -95,6 +80,8 @@ def print_help():
     [: If the value at the current cell is 0, jump to the matching ].
     ]: If the value at the current cell is nonzero, jump to the matching [.
     ------------------------
+    This program does not compile the C code. It only generates it.
+    ------------------------
     Example A:
     # adds two numbers A, B. leaves the result in B
 
@@ -103,7 +90,7 @@ def print_help():
     print(data)
     >>> [10, 20, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    bf = BrainFart(program, data)
+    bf = BrainFart2C(program, data)
     output = bf.run()
 
     print(output)
@@ -117,7 +104,7 @@ def print_help():
     print(data)
     >>> [0, 2, 3, 4, 0, 0, 0, 0, 0, 0]
 
-    bf = BrainFart(program, data)
+    bf = BrainFart2C(program, data)
     print(bf.run())
 
     >>> [0, 0, 2, 3, 4, 0, 0, 0, 0, 0]
@@ -129,7 +116,7 @@ def __main():
     # -p, --program <str>: The program to run. Defaults to empty string.
     # -f, --file <str>: The file to run. Defaults to empty string.
     # -d, --data <str>: CSV of data to use. Defaults to 1000 cells of 0 if not provided.
-    parser = argparse.ArgumentParser(description="BrainFart.py - A BrainFart interpreter written in Python")
+    parser = argparse.ArgumentParser(description="BrainFart2C.py - A BrainFart-to-C converter written in Python")
     # parser.add_argument("-h", "--help", action="store_true", help="Prints this help message.")
     parser.add_argument("-p", "--program", type=str, default="", help="The program to run. Defaults to empty string.")
     parser.add_argument("-f", "--file", type=str, default="", help="The file to run. Defaults to empty string.")
@@ -151,7 +138,7 @@ def __main():
     else:
         data = [0] * 1000
     
-    bf = BrainFart(program, data)
+    bf = BrainFart2C(program, data)
     output = bf.run()
     print(output)
 
